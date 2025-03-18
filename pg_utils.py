@@ -105,14 +105,6 @@ class PostgresChain():
 
         sql_query = response.content
         return sql_query
-
-        # # Execute the SQL query against PostgreSQL
-        # try:
-        #     self.cur.execute(sql_query)
-        #     result = self.cur.fetchall()
-        #     return {"question": q.question, "sql_query": sql_query, "result": result}
-        # except Exception as e:
-        #     raise "error"
     async def execute_query(self, query: str) -> list:
         # Execute the SQL query against PostgreSQL
         self.cur.execute(query)
