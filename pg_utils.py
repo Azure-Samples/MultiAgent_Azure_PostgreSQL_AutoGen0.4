@@ -2,15 +2,11 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import psycopg2
 import os
-from dotenv import load_dotenv
-import asyncio
-import nest_asyncio
 from autogen_ext.models.openai import AzureOpenAIChatCompletionClient
 from autogen_core.models import UserMessage
 import json  # Import json module to convert data to JSON string
-
-# Load environment variables from the .env file from the same directory as notebook 
-load_dotenv()
+from dotenv import load_dotenv
+load_dotenv(override=True)
 
 # Retrieve environment variables
 POSTGRES_USER = os.getenv('POSTGRES_USER')
@@ -21,6 +17,7 @@ POSTGRES_DB = os.getenv('POSTGRES_DB')
 AZURE_OPENAI_KEY = os.getenv('AZURE_OPENAI_KEY')
 AZURE_OPENAI_ENDPOINT = os.getenv('AZURE_OPENAI_ENDPOINT')
 AZURE_OPENAI_DEPLOYMENT = os.getenv('AZURE_OPENAI_DEPLOYMENT')
+print(POSTGRES_DB)
 
 class Question(BaseModel):
     question: str
