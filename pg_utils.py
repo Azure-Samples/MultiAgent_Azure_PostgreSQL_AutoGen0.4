@@ -35,7 +35,7 @@ class PostgresChain():
             port=POSTGRES_PORT,
             database=POSTGRES_DB
         )
-        self.cur = self.conn.cursor()
+
         self.llm = AzureOpenAIChatCompletionClient(
         azure_deployment=AZURE_OPENAI_DEPLOYMENT,
         model="gpt-4",
@@ -50,50 +50,58 @@ class PostgresChain():
         return schema
 
     def __close__(self):
-        self.cur.close()
         self.conn.close()
     async def get_schema_info(self) -> str:
 
-        query = """
-        SELECT
-            cols.table_schema,
-            cols.table_name,
-            cols.column_name,
-            cols.data_type,
-            cols.is_nullable,
-            cons.constraint_type,
-            cons.constraint_name,
-            fk.references_table AS referenced_table,
-            fk.references_column AS referenced_column
-        FROM information_schema.columns cols
-        LEFT JOIN information_schema.key_column_usage kcu
-            ON cols.table_schema = kcu.table_schema
-            AND cols.table_name = kcu.table_name
-            AND cols.column_name = kcu.column_name
-        LEFT JOIN information_schema.table_constraints cons
-            ON kcu.table_schema = cons.table_schema
-            AND kcu.table_name = cons.table_name
-            AND kcu.constraint_name = cons.constraint_name
-        LEFT JOIN (
+        try: 
+            with open('schema.json', 'r') as f:
+                schema = json.load(f)
+                return schema
+        except:
+            query = """
             SELECT
-                rc.constraint_name,
-                kcu.table_name AS references_table,
-                kcu.column_name AS references_column
-            FROM information_schema.referential_constraints rc
-            JOIN information_schema.key_column_usage kcu
-                ON rc.unique_constraint_name = kcu.constraint_name
-        ) fk
-            ON cons.constraint_name = fk.constraint_name
-        WHERE cols.table_schema = 'public'
-        ORDER BY cols.table_schema, cols.table_name, cols.ordinal_position;
-        """
-        self.cur.execute(query)
-        columns = [desc[0] for desc in self.cur.description]
-        rows = self.cur.fetchall()
-        self.conn.commit()
-        # Convert the result to a list of dictionaries
-        schema_info = [dict(zip(columns, row)) for row in rows]
-        return json.dumps(schema_info, indent=2)
+                cols.table_schema,
+                cols.table_name,
+                cols.column_name,
+                cols.data_type,
+                cols.is_nullable,
+                cons.constraint_type,
+                cons.constraint_name,
+                fk.references_table AS referenced_table,
+                fk.references_column AS referenced_column
+            FROM information_schema.columns cols
+            LEFT JOIN information_schema.key_column_usage kcu
+                ON cols.table_schema = kcu.table_schema
+                AND cols.table_name = kcu.table_name
+                AND cols.column_name = kcu.column_name
+            LEFT JOIN information_schema.table_constraints cons
+                ON kcu.table_schema = cons.table_schema
+                AND kcu.table_name = cons.table_name
+                AND kcu.constraint_name = cons.constraint_name
+            LEFT JOIN (
+                SELECT
+                    rc.constraint_name,
+                    kcu.table_name AS references_table,
+                    kcu.column_name AS references_column
+                FROM information_schema.referential_constraints rc
+                JOIN information_schema.key_column_usage kcu
+                    ON rc.unique_constraint_name = kcu.constraint_name
+            ) fk
+                ON cons.constraint_name = fk.constraint_name
+            WHERE cols.table_schema = 'public'
+            ORDER BY cols.table_schema, cols.table_name, cols.ordinal_position;
+            """
+            schema_cur = self.conn.cursor()
+            schema_cur.execute(query)
+            columns = [desc[0] for desc in self.cur.description]
+            rows = schema_cur.fetchall()
+            self.conn.commit()
+            # Convert the result to a list of dictionaries
+            schema_info = [dict(zip(columns, row)) for row in rows]
+            with open('schema.json', 'w') as f:
+                json.dump(schema_info, f)
+            return json.dumps(schema_info, indent=2)
+ 
     async def nl2query(self, user_q: str):
     # Generate SQL query from natural language question
         q = Question(question=user_q)
@@ -107,51 +115,52 @@ class PostgresChain():
         return sql_query
     async def execute_query(self, query: str) -> list:
         # Execute the SQL query against PostgreSQL
-        self.cur.execute(query)
-        result = self.cur.fetchall()
+        query_cursor = self.conn.cursor()
+        query_cursor.execute(query)
+        result = query_cursor.fetchall()
         self.conn.commit()
         return result
 
 
-    # Method to add a new customer to the CRM database
-    def add_customer(self, parameters: dict) -> str:
-        # Begin a transaction
-        try:
-            # Prepare the parameter placeholders
-            param_placeholders = ', '.join([f":{k}" for k in parameters.keys()])
-            # Construct the SQL command to execute the stored procedure
-            self.cur.callproc("add_customer", param_placeholders)
-            # Return a success message
-            self.conn.commit()
-            return "Customer added successfully."
-        except Exception as e:
-            self.conn.rollback()
-            return f"An error occurred while executing the stored procedure: {e}"
+    # # Method to add a new customer to the CRM database
+    # def add_customer(self, parameters: dict) -> str:
+    #     # Begin a transaction
+    #     try:
+    #         # Prepare the parameter placeholders
+    #         param_placeholders = ', '.join([f":{k}" for k in parameters.keys()])
+    #         # Construct the SQL command to execute the stored procedure
+    #         self.cur.callproc("add_customer", param_placeholders)
+    #         # Return a success message
+    #         self.conn.commit()
+    #         return "Customer added successfully."
+    #     except Exception as e:
+    #         self.conn.rollback()
+    #         return f"An error occurred while executing the stored procedure: {e}"
 
-    # Method to create a new shipment in the shipment database
-    def send_shipment(self,procedure_name, parameters):
+    # # Method to create a new shipment in the shipment database
+    # def send_shipment(self,procedure_name, parameters):
 
-        try:
-            # If 'items' is a list, convert it to JSON string
-            if isinstance(parameters.get('items'), list):
-                parameters['items'] = json.dumps(parameters['items'])
-            # Prepare the parameter placeholders
-            param_placeholders = ', '.join([f":{k}" for k in parameters.keys()])
-            # Construct the SQL command
-            self.cur.callproc(procedure_name, param_placeholders)
-            # Commit the transaction
-            self.conn.commit()
-            return "Shipment sent successfully."
-        except Exception as e:
-            self.conn.rollback()
-            return f"An error occurred while executing the stored procedure: {e}"
+    #     try:
+    #         # If 'items' is a list, convert it to JSON string
+    #         if isinstance(parameters.get('items'), list):
+    #             parameters['items'] = json.dumps(parameters['items'])
+    #         # Prepare the parameter placeholders
+    #         param_placeholders = ', '.join([f":{k}" for k in parameters.keys()])
+    #         # Construct the SQL command
+    #         self.cur.callproc(procedure_name, param_placeholders)
+    #         # Commit the transaction
+    #         self.conn.commit()
+    #         return "Shipment sent successfully."
+    #     except Exception as e:
+    #         self.conn.rollback()
+    #         return f"An error occurred while executing the stored procedure: {e}"
 
 
 
-if __name__ == "__main__":
-    # nest_asyncio.apply()
-    pg = PostgresChain()
-    print(pg.schema)
-    query = asyncio.run(pg.nl2query("Which products with names are currently tracking in transit?"))
-    print(query)
-    print(asyncio.run(pg.execute_query(query)))
+# if __name__ == "__main__":
+#     # nest_asyncio.apply()
+#     pg = PostgresChain()
+#     print(pg.schema)
+#     query = asyncio.run(pg.nl2query("Which products with names are currently tracking in transit?"))
+#     print(query)
+#     print(asyncio.run(pg.execute_query(query)))
