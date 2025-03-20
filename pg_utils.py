@@ -17,7 +17,7 @@ POSTGRES_DB = os.getenv('POSTGRES_DB')
 AZURE_OPENAI_KEY = os.getenv('AZURE_OPENAI_KEY')
 AZURE_OPENAI_ENDPOINT = os.getenv('AZURE_OPENAI_ENDPOINT')
 AZURE_OPENAI_DEPLOYMENT = os.getenv('AZURE_OPENAI_DEPLOYMENT')
-print(POSTGRES_DB)
+
 
 class Question(BaseModel):
     question: str
@@ -117,41 +117,6 @@ class PostgresChain():
         result = query_cursor.fetchall()
         self.conn.commit()
         return result
-
-
-    # # Method to add a new customer to the CRM database
-    # def add_customer(self, parameters: dict) -> str:
-    #     # Begin a transaction
-    #     try:
-    #         # Prepare the parameter placeholders
-    #         param_placeholders = ', '.join([f":{k}" for k in parameters.keys()])
-    #         # Construct the SQL command to execute the stored procedure
-    #         self.cur.callproc("add_customer", param_placeholders)
-    #         # Return a success message
-    #         self.conn.commit()
-    #         return "Customer added successfully."
-    #     except Exception as e:
-    #         self.conn.rollback()
-    #         return f"An error occurred while executing the stored procedure: {e}"
-
-    # # Method to create a new shipment in the shipment database
-    # def send_shipment(self,procedure_name, parameters):
-
-    #     try:
-    #         # If 'items' is a list, convert it to JSON string
-    #         if isinstance(parameters.get('items'), list):
-    #             parameters['items'] = json.dumps(parameters['items'])
-    #         # Prepare the parameter placeholders
-    #         param_placeholders = ', '.join([f":{k}" for k in parameters.keys()])
-    #         # Construct the SQL command
-    #         self.cur.callproc(procedure_name, param_placeholders)
-    #         # Commit the transaction
-    #         self.conn.commit()
-    #         return "Shipment sent successfully."
-    #     except Exception as e:
-    #         self.conn.rollback()
-    #         return f"An error occurred while executing the stored procedure: {e}"
-
 
 
 # if __name__ == "__main__":
