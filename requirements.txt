@@ -1,0 +1,8 @@
+autogen_agentchat==0.2.40
+autogen_core==0.4.9.2
+autogen_ext==0.4.9.2
+fastapi==0.115.11
+psycopg2==2.9.10
+pydantic==2.10.6
+python-dotenv==1.0.1
+SQLAlchemy==2.0.36
