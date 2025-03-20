@@ -12,7 +12,7 @@
     - You can use the provided helper file called db_util.py to set up your db. Just ensure to update .env file with your own credentials.
 
 ## Sequential group chat 
-**Provides a sequential multi-agent human-in-loop flow for answering user's question from the database.
+**Provides a sequential multi-agent human-in-loop flow for answering user's question from the database.**
 - Run multi_agent_sequential_flow.py
 
 ### Any issue? please report and reach out!
