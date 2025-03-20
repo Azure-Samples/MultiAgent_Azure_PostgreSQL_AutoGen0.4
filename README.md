@@ -15,4 +15,4 @@
 **Provides a sequential multi-agent human-in-loop flow for answering user's question from the database.**
 - Run multi_agent_sequential_flow.py
 
-### Any issue? please report and reach out!
+### Any issues? please report and reach out!
