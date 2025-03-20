@@ -40,15 +40,11 @@ class PostgresChain():
         azure_endpoint=AZURE_OPENAI_ENDPOINT,
         api_key=AZURE_OPENAI_KEY
         )
-        #self.schema = self.get_schema_info()
-
-    async def get_schema(self) -> str:
-        schema = await self.get_schema_info()
-        return schema
 
     def __close__(self):
         self.conn.close()
     async def get_schema_info(self) -> str:
+        print("Getting schema")
 
         try: 
             with open('schema.json', 'r') as f:
@@ -90,9 +86,9 @@ class PostgresChain():
             """
             schema_cur = self.conn.cursor()
             schema_cur.execute(query)
-            columns = [desc[0] for desc in self.cur.description]
+            columns = [desc[0] for desc in schema_cur.description]
             rows = schema_cur.fetchall()
-            self.conn.commit()
+            schema_cur.close()
             # Convert the result to a list of dictionaries
             schema_info = [dict(zip(columns, row)) for row in rows]
             with open('schema.json', 'w') as f:
@@ -115,7 +111,7 @@ class PostgresChain():
         query_cursor = self.conn.cursor()
         query_cursor.execute(query)
         result = query_cursor.fetchall()
-        self.conn.commit()
+        query_cursor.close()
         return result
 
 

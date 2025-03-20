@@ -37,6 +37,29 @@ def get_shared_schema_info():
         schema_agent.get_schema()
     return schema_agent.schema_info
 
+def initiate_planner_agent(client):
+    planning_agent = AssistantAgent(
+                    name ="planning_agent",
+                    description="An agent for planning tasks, this agent should be the first to engage when given a new task.",
+                    model_client=client,
+                    system_message="""
+                    You are a planning agent.
+                    Your job is to break down complex tasks into smaller, manageable subtasks.
+                    Start by calling the schema_agent to retrieve the database schema information if conversation history does not have it.
+                    Let the schema_agent retrieve schema for all tables. Do not specify any table name.
+                    Your team members are:
+                        schema_agent: retrieves database schema information
+                        shipment_agent: queries the shipment database based on the retrieved schema
+                        concierge_agent: provides the final answer to the user based on the query results
+                    You only plan and delegate tasks - you do not execute them yourself.
+
+                    When assigning tasks, use this format:
+                    1. <agent> : <task>
+
+                    """,
+                )
+    return planning_agent
+
 def create_shipment_agent(client, shipment_chain):
         
     shipment_agent = AssistantAgent(name="shipment_agent",
@@ -57,11 +80,10 @@ def create_schema_agent(client, shipment_chain):
     schema_agent = AssistantAgent(name="schema_agent",
                                 model_client=client,
                                 description="Understands and shares database schema information.",
-                                tools=[FunctionTool(name="get_schema", func = shipment_chain.get_schema_info, description="Retrieves the database schema and shares it"),
-                                        FunctionTool(name="get_shared_schema_info", func = get_shared_schema_info, description="Retrieves the shared schema information")],
+                                tools=[FunctionTool(name="get_schema_info", func = shipment_chain.get_schema_info, description="Retrieves the database schema and shares it")],
                                 system_message=(
-                                        "Your role is to retrieve and understand the database schema and referential integrity constraints."
-                                        "Only use 'get_schema' to retrieve schema information and share schema with the next agent."
+                                        "Your role is to run 'get_schema_info' to retrieve schema information. Do not do anything else."
+                                        "If you could not retrieve the schema information, say 'I failed to get the schema information'"
                                     )
                                 ) 
     return schema_agent  
@@ -84,8 +106,3 @@ def create_user_proxy():
                         description="Interact with user",
                         input_func = get_user_input)
     return user_proxy_agent
-
-
-
-
-
