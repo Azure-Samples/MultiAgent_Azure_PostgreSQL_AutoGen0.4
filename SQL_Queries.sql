@@ -14,7 +14,7 @@ INSERT INTO shipments (shipment_date, status, origin_id, destination_id, custome
 INSERT INTO shipment_items (shipment_id, product_id, quantity, weight) VALUES (1, 1, 2, 5.0), (1, 3, 1, 0.3), (2, 2, 1, 0.4), (3, 1, 1, 2.5), (3, 3, 2, 0.6);
 INSERT INTO shipment_tracking (shipment_id, status, location_id, timestamp) VALUES (1, 'Departed Origin', 1, '2024-11-10 08:00:00'), (1, 'In Transit', 2, '2024-11-11 12:30:00'), (2, 'Departed Origin', 3, '2024-11-11 09:00:00'), (2, 'Delivered', 4, '2024-11-12 15:00:00'), (3, 'Departed Origin', 2, '2024-11-12 10:00:00'), (3, 'In Transit', 3, '2024-11-13 13:45:00'); 
 
--- Create Store Procedures add_customer and send_shipment
+-- Create Store Procedures add_customer and send_shipment (replaces if already exists)
 
 CREATE OR REPLACE PROCEDURE add_customer(
     p_name VARCHAR,
