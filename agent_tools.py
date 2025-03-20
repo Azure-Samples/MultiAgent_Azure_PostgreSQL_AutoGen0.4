@@ -1,7 +1,5 @@
-# Method to add a new customer to the CRM database
 import warnings
 warnings.filterwarnings("ignore")
-import asyncio
 from autogen_ext.models.openai import AzureOpenAIChatCompletionClient
 from autogen_core.models import ChatCompletionClient
 from autogen_agentchat.agents import AssistantAgent
@@ -78,7 +76,7 @@ def create_concierge_agent(client):
                             )
     return concierge_agent
 
-def get_user_input(dummy_var):
+def get_user_input(dummy_var): # have to pass a dummy variable to match the function signature
     return input("Ask a question or type 'bye' to end the conversation:")
 
 def create_user_proxy():
