@@ -14,13 +14,13 @@
 ## Multi-agent group chat with a **planner agent**
 Provides a sequential multi-agent human-in-loop flow for answering user's question from the database.
 
-** to test:**
+**to test:**
 - python test_with_planner.py
 
 ## Multi-agent group chat in a **roundrobin fashion**
 Provides a sequential multi-agent human-in-loop flow for answering user's question from the database.
 
-** to test:**
+**to test:**
 - python test_with_roundrobin.py
 
 ### Any issues? please report and reach out!
