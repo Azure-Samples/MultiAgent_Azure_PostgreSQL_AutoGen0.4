@@ -71,9 +71,12 @@ def create_shipment_agent(client, shipment_chain):
     shipment_agent = AssistantAgent(name="shipment_agent",
                                 model_client=client,
                                 description="Your role is to focus on shipment and products tables.",
-                                tools=[FunctionTool(name="execute_query", func= shipment_chain.execute_query, description= "runs postgres query on shipment database")],
+                                tools=[FunctionTool(name="execute_query", func= shipment_chain.execute_query, description= "runs postgres query on shipment database"),
+                                       FunctionTool(name="exec_send_shipment", func= shipment_chain.exec_send_shipment, description=  "Sends a shipment by executing the 'send_shipment' stored procedure with the provided values.")],
                                 system_message=(
-                            "Your role is to query the database using 'execute_query' function with a focus on the shipment and products related tables."
+                            "You can run SELECT queries using 'execute_query' function."
+                            "Use the 'exec_send_shipment' function to create a shipment using the 'send_shipment' stored procedure and provided input values. Below is an example of how to provide input values:"
+                            "[11, 1, 2, date(2023, 10, 1),[{'product_id': 1, 'quantity': 2}, 'product_id': 2, 'quantity': 3}], 'in transit', 'in transit', 1]"
                             "Only if schema information is available, proceed with the task."
                             "Conditions in query should not be case sensitive."
                             "For Insert, Update, and Delete operations, have human to validate the operation before making it."

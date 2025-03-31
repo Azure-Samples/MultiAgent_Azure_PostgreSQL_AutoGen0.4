@@ -8,6 +8,7 @@ from autogen_ext.models.openai import AzureOpenAIChatCompletionClient
 from autogen_core.models import UserMessage
 import json  # Import json module to convert data to JSON string
 from dotenv import load_dotenv
+from datetime import date
 load_dotenv(override=True)
 
 # Retrieve environment variables
@@ -146,13 +147,50 @@ class PostgresChain():
         except Exception as e:
             self.conn.rollback()
             return f"An error occurred while executing the stored procedure: {e}"
+        
+    async def exec_send_shipment(self, procedure_name: str, input_vals: list) -> str:
+        try:
+            cursor = self.conn.cursor()
+            # If 'items' is a list, convert it to JSON string
+            values =[]
+            for item in input_vals:
+                if isinstance(item, list):
+                    item = json.dumps(item)
+                    values.append(item)
+                else:
+                    values.append(item)
+
+            # Define the parameter placeholders for the stored procedure
+            param_placeholders = ', '.join([
+                '%s::INTEGER',  # customer_id
+                '%s::INTEGER',  # origin_id
+                '%s::INTEGER',  # destination_id
+                '%s::DATE',     # shipment_date
+                '%s::JSONB',    # items
+                '%s::VARCHAR',  # status
+                '%s::VARCHAR',  # tracking_status
+                '%s::INTEGER'   # location_id
+            ])
+
+            # Construct the SQL command
+            sql_command = f"CALL {procedure_name}({param_placeholders});"
+
+            # Execute the stored procedure
+            cursor.execute(sql_command, tuple(values))
+            cursor.close()
+            self.conn.commit()
+            return f"Shipment sent successfully."
+        except Exception as e:
+            print(e)
+            self.conn.rollback()
+            return f"An error occurred while executing the stored procedure: {e}"
 
 # if __name__ == "__main__":
-#     # nest_asyncio.apply()
-#     pg = PostgresChain()
-#     _ = asyncio.run(pg.exec_add_customer("add_customer", {"name":"test", "phone number": "+4165551355", 
-#                                           "email":"test@test.ca", "address":"1234 street, "
-#                                           "Toronto, Ontario, Canada, M1M1M1"}))
-#     pg.__close__(pool=True)
-#     print("connections closed succssfully")
 
+    # pg = PostgresChain()
+    # a= asyncio.run(pg.exec_send_shipment("send_shipment", 
+    #                                      [11, 1, 2, date(2023, 10, 1),[{"product_id": 1, "quantity": 2}, {"product_id": 2, "quantity": 3}],
+    #                                       "in transit", "in transit", 1]))
+    # print(a)
+    # pg.__close__(pool=True)
+    # print("connections closed succssfully")
