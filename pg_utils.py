@@ -8,7 +8,6 @@ from autogen_ext.models.openai import AzureOpenAIChatCompletionClient
 from autogen_core.models import UserMessage
 import json  # Import json module to convert data to JSON string
 from dotenv import load_dotenv
-from datetime import date
 load_dotenv(override=True)
 
 # Retrieve environment variables
@@ -20,23 +19,24 @@ AZURE_OPENAI_KEY = os.getenv('AZURE_OPENAI_KEY')
 AZURE_OPENAI_ENDPOINT = os.getenv('AZURE_OPENAI_ENDPOINT')
 AZURE_OPENAI_DEPLOYMENT = os.getenv('AZURE_OPENAI_DEPLOYMENT')
 
-# Initialize connection pool
-connection_pool = pool.SimpleConnectionPool(
-    1, 20,  # minconn, maxconn
-    user=POSTGRES_USER,
-    password = pwinput.pwinput(prompt='Enter your Azure postgreSQL db password: ', mask='*'),
-    host=POSTGRES_HOST,
-    port=POSTGRES_PORT,
-    database=POSTGRES_DB
-)
-
 
 class Question(BaseModel):
     question: str
 
+def init_pool(pw):
+    # Initialize connection pool
+    connection_pool = pool.SimpleConnectionPool(
+        1, 20,  # minconn, maxconn
+        user=os.getenv('POSTGRES_USER'),
+        password=pw,
+        host=os.getenv('POSTGRES_HOST'),
+        port=os.getenv('POSTGRES_PORT'),
+        database=os.getenv('POSTGRES_DB')
+    )
+    return connection_pool
 
 class PostgresChain():
-    def __init__(self):
+    def __init__(self, connection_pool):
 
         self.llm = AzureOpenAIChatCompletionClient(
         azure_deployment=AZURE_OPENAI_DEPLOYMENT,
@@ -46,11 +46,12 @@ class PostgresChain():
         api_key=AZURE_OPENAI_KEY
         )
         self.conn = connection_pool.getconn()
+        self.pool = connection_pool
 
     def __close__(self, pool=False):
-        connection_pool.putconn(self.conn)
+        self.pool.putconn(self.conn)
         if pool:
-            connection_pool.closeall()
+            self.pool.closeall()
 
 
     async def get_schema_info(self) -> str:

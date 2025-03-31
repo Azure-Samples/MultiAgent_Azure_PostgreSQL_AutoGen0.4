@@ -1,4 +1,4 @@
-from pg_utils import PostgresChain
+from pg_utils import PostgresChain, init_pool
 import warnings
 warnings.filterwarnings("ignore")
 import asyncio
@@ -9,7 +9,7 @@ from autogen_agentchat.teams import SelectorGroupChat
 
 from autogen_agentchat.ui import Console
 from typing import Sequence
-
+import pwinput
 
 
 def selector_func(messages: Sequence[AgentEvent | ChatMessage]) -> str | None:
@@ -19,10 +19,11 @@ def selector_func(messages: Sequence[AgentEvent | ChatMessage]) -> str | None:
         return "planning_agent"
     return None
 
-async def init_sequential_group_chat(init_task):
+async def init_sequential_group_chat(init_task, connection_pool):
+    # Initialize connection pool
 
-    shipment_chain = PostgresChain()
-    customer_chain = PostgresChain()
+    shipment_chain = PostgresChain(connection_pool)
+    customer_chain = PostgresChain(connection_pool)
 
     client = init_client()
     
@@ -50,8 +51,11 @@ async def init_sequential_group_chat(init_task):
     return True
 
 if __name__ == "__main__":
-    q =  "add a customer with name John smith, phone number 4372221453, email jsmnith@sample.ca, address 1234 street, city Toronto, province Ontario, country Canada, postal code M1M1M1"
 
-    final_res = asyncio.run(init_sequential_group_chat(q))
+    pw = pwinput.pwinput(prompt='Enter your Azure postgreSQL db password: ', mask='*')
+    connection_pool = init_pool(pw)
+    q =  "is there a customer named Mehrsa?"
+
+    final_res = asyncio.run(init_sequential_group_chat(q, connection_pool))
 
     

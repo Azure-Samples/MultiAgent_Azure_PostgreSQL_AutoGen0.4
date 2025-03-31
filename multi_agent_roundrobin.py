@@ -1,4 +1,4 @@
-from pg_utils import PostgresChain
+from pg_utils import PostgresChain, init_pool
 import warnings
 warnings.filterwarnings("ignore")
 import asyncio
@@ -7,13 +7,14 @@ from autogen_agentchat.conditions import TextMentionTermination
 from autogen_agentchat.teams import RoundRobinGroupChat
 from autogen_agentchat.ui import Console
 from typing import Sequence
+import pwinput
 
 
 
-async def init_roundrobin_group_chat(init_task):
+async def init_roundrobin_group_chat(init_task, connection_pool):
 
-    shipment_chain = PostgresChain()
-    customer_chain = PostgresChain()
+    shipment_chain = PostgresChain(connection_pool)
+    customer_chain = PostgresChain(connection_pool)
 
     client = init_client()
     
@@ -41,8 +42,11 @@ async def init_roundrobin_group_chat(init_task):
     return True
 
 if __name__ == "__main__":
-    q = "how many items are in transit?"
 
-    final_res = asyncio.run(init_roundrobin_group_chat(q))
+    pw = pwinput.pwinput(prompt='Enter your Azure postgreSQL db password: ', mask='*')
+    connection_pool = init_pool(pw)
+    q = "is there a customer named Mehrsa?"
+
+    final_res = asyncio.run(init_roundrobin_group_chat(q, connection_pool))
 
     
