@@ -50,12 +50,4 @@ async def init_sequential_group_chat(init_task, connection_pool):
 
     return True
 
-if __name__ == "__main__":
-
-    pw = pwinput.pwinput(prompt='Enter your Azure postgreSQL db password: ', mask='*')
-    connection_pool = init_pool(pw)
-    q =  "is there a customer named Mehrsa?"
-
-    final_res = asyncio.run(init_sequential_group_chat(q, connection_pool))
-
     
