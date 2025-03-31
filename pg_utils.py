@@ -1,6 +1,8 @@
-from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-import psycopg2
+from psycopg2 import pool
+import pwinput
+import asyncio
+from typing import Dict
 import os
 from autogen_ext.models.openai import AzureOpenAIChatCompletionClient
 from autogen_core.models import UserMessage
@@ -10,13 +12,22 @@ load_dotenv(override=True)
 
 # Retrieve environment variables
 POSTGRES_USER = os.getenv('POSTGRES_USER')
-POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
 POSTGRES_HOST = os.getenv('POSTGRES_HOST')
 POSTGRES_PORT = os.getenv('POSTGRES_PORT')
 POSTGRES_DB = os.getenv('POSTGRES_DB')
 AZURE_OPENAI_KEY = os.getenv('AZURE_OPENAI_KEY')
 AZURE_OPENAI_ENDPOINT = os.getenv('AZURE_OPENAI_ENDPOINT')
 AZURE_OPENAI_DEPLOYMENT = os.getenv('AZURE_OPENAI_DEPLOYMENT')
+
+# Initialize connection pool
+connection_pool = pool.SimpleConnectionPool(
+    1, 20,  # minconn, maxconn
+    user=POSTGRES_USER,
+    password = pwinput.pwinput(prompt='Enter your Azure postgreSQL db password: ', mask='*'),
+    host=POSTGRES_HOST,
+    port=POSTGRES_PORT,
+    database=POSTGRES_DB
+)
 
 
 class Question(BaseModel):
@@ -25,13 +36,6 @@ class Question(BaseModel):
 
 class PostgresChain():
     def __init__(self):
-        self.conn = psycopg2.connect(
-            user=POSTGRES_USER,
-            password=POSTGRES_PASSWORD,
-            host=POSTGRES_HOST,
-            port=POSTGRES_PORT,
-            database=POSTGRES_DB
-        )
 
         self.llm = AzureOpenAIChatCompletionClient(
         azure_deployment=AZURE_OPENAI_DEPLOYMENT,
@@ -40,15 +44,19 @@ class PostgresChain():
         azure_endpoint=AZURE_OPENAI_ENDPOINT,
         api_key=AZURE_OPENAI_KEY
         )
+        self.conn = connection_pool.getconn()
 
-    def __close__(self):
-        self.conn.close()
+    def __close__(self, pool=False):
+        connection_pool.putconn(self.conn)
+        if pool:
+            connection_pool.closeall()
+
+
     async def get_schema_info(self) -> str:
         print("Getting schema")
-
-        try: 
+        try:
             with open('schema.json', 'r') as f:
-                schema = json.load(f)
+                schema = await json.load(f)
                 return schema
         except:
             query = """
@@ -94,7 +102,8 @@ class PostgresChain():
             with open('schema.json', 'w') as f:
                 json.dump(schema_info, f)
             return json.dumps(schema_info, indent=2)
- 
+
+
     async def nl2query(self, user_q: str):
     # Generate SQL query from natural language question
         q = Question(question=user_q)
@@ -107,18 +116,43 @@ class PostgresChain():
         sql_query = response.content
         return sql_query
     async def execute_query(self, query: str) -> list:
-        # Execute the SQL query against PostgreSQL
-        query_cursor = self.conn.cursor()
-        query_cursor.execute(query)
-        result = query_cursor.fetchall()
-        query_cursor.close()
-        return result
+        try:
+            query_cursor = self.conn.cursor()
+            query_cursor.execute(query)
+            if query.startswith("DELETE"):
+                result = ["Delete operation successful"]
+            else:
+                result = query_cursor.fetchall()
+            self.conn.commit()
+            query_cursor.close()
+            return result
+        except Exception as e:
+            self.conn.rollback()
+            return [e]
+        
+    async def exec_add_customer(self, procedure_name: str, input_vals: list) -> str:
 
+        try:
+            cursor = self.conn.cursor()
+            values = input_vals
+            param_placeholders = ', '.join(['%s'] * len(values))
+            sql_command = f"CALL {procedure_name}({param_placeholders});"
+
+            cursor.execute(sql_command, tuple(values))
+            cursor.close()
+            self.conn.commit()
+            return "Customer added successfully."
+
+        except Exception as e:
+            self.conn.rollback()
+            return f"An error occurred while executing the stored procedure: {e}"
 
 # if __name__ == "__main__":
 #     # nest_asyncio.apply()
 #     pg = PostgresChain()
-#     print(pg.schema)
-#     query = asyncio.run(pg.nl2query("Which products with names are currently tracking in transit?"))
-#     print(query)
-#     print(asyncio.run(pg.execute_query(query)))
+#     _ = asyncio.run(pg.exec_add_customer("add_customer", {"name":"test", "phone number": "+4165551355", 
+#                                           "email":"test@test.ca", "address":"1234 street, "
+#                                           "Toronto, Ontario, Canada, M1M1M1"}))
+#     pg.__close__(pool=True)
+#     print("connections closed succssfully")
+

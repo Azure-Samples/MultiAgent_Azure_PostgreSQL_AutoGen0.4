@@ -5,7 +5,7 @@ from autogen_core.models import ChatCompletionClient
 from autogen_agentchat.agents import AssistantAgent
 from autogen_core.tools import FunctionTool
 from autogen_agentchat.agents import UserProxyAgent
-
+from pg_utils import PostgresChain
 import os
 
 AZURE_OPENAI_KEY = os.getenv('AZURE_OPENAI_KEY')
@@ -30,12 +30,19 @@ def init_client():
     client = ChatCompletionClient.load_component(llm_config)
     return client
 
+def create_schema_agent(client, chain):
+    schema_agent = AssistantAgent(name="schema_agent",
+                                model_client=client,
+                                description="Retrieves database schema information at start of the conversation.",
+                                tools=[FunctionTool(name="get_schema_info", func = chain.get_schema_info, description="Retrieves the database schema and saves it")],
+                                system_message=(
+                                        "Retrieves the database schema and referential integrity information. Only use 'get_schema_info' to retrieve schema information and store it. Do not do anything else. And always provide schema information when you start first."
+                                        "If you could not retrieve the schema information, say 'I failed to get the schema information'"
+                                    )
+                                ) 
+    return schema_agent  
 
-# functio to get schema from schema_agent
-def get_shared_schema_info():
-    if schema_agent.schema_info is None:
-        schema_agent.get_schema()
-    return schema_agent.schema_info
+
 
 def initiate_planner_agent(client):
     planning_agent = AssistantAgent(
@@ -44,13 +51,12 @@ def initiate_planner_agent(client):
                     model_client=client,
                     system_message="""
                     You are a planning agent.
-                    Your job is to break down complex tasks into smaller, manageable subtasks.
-                    Start by calling the schema_agent to retrieve the database schema information if conversation history does not have it.
-                    Let the schema_agent retrieve schema for all tables. Do not specify any table name.
+                    Start by calling the schema_agent to retrieve the database schema information. Do not specify any table name.
+                    If the schema information is already available in the conversation history, do not call schema_agent.
                     Your team members are:
                         schema_agent: retrieves database schema information
-                        shipment_agent: queries the shipment database based on the retrieved schema
-                        concierge_agent: provides the final answer to the user based on the query results
+                        customer_agent: accesses and manages customers information and makes updates to the customers table
+                        shipment_agent: accesses and manages shipments and products information and makes updates to the product and shipment related tables
                     You only plan and delegate tasks - you do not execute them yourself.
 
                     When assigning tasks, use this format:
@@ -64,45 +70,38 @@ def create_shipment_agent(client, shipment_chain):
         
     shipment_agent = AssistantAgent(name="shipment_agent",
                                 model_client=client,
-                                description="Retrieves information from the shipment database.",
-                                tools=[FunctionTool(name="shipment_query", func= shipment_chain.execute_query, description= "runs postgres query on shipment database")],
+                                description="Your role is to focus on shipment and products tables.",
+                                tools=[FunctionTool(name="execute_query", func= shipment_chain.execute_query, description= "runs postgres query on shipment database")],
                                 system_message=(
-                            "Your role is to query the database using 'shipment_query'."
-                            # "Use 'get_shared_schema_info' from schema_agent to retrieve schema information."
-                            "PostgreSQL query should adhere to the schema iformation"
-                            "Focus on the shipments tables and ensure that all shipments are tracked correctly."
+                            "Your role is to query the database using 'execute_query' function with a focus on the shipment and products related tables."
+                            "Only if schema information is available, proceed with the task."
                             "Conditions in query should not be case sensitive."
+                            "For Insert, Update, and Delete operations, have human to validate the operation before making it."
                             )
                             )
     return shipment_agent
 
-def create_schema_agent(client, shipment_chain):
-    schema_agent = AssistantAgent(name="schema_agent",
+def create_customer_agent(client, customer_chain):
+    customer_agent = AssistantAgent(name="customer_agent",
                                 model_client=client,
-                                description="Understands and shares database schema information.",
-                                tools=[FunctionTool(name="get_schema_info", func = shipment_chain.get_schema_info, description="Retrieves the database schema and shares it")],
+                                description="Your role is to focus on customer data management.",
+                                tools=[FunctionTool(name="exec_add_customer", func= customer_chain.exec_add_customer, description=  "Adds a customer to the table customers in the database."),
+                                       FunctionTool(name="execute_query", func= customer_chain.execute_query, description= "runs postgres query on the database")],
                                 system_message=(
-                                        "Your role is to run 'get_schema_info' to retrieve schema information. Do not do anything else."
-                                        "If you could not retrieve the schema information, say 'I failed to get the schema information'"
+                                        "Your role is to manage customer information in the database. You can run SELECT queries using 'execute_query' function."
+                                        "Use 'exec_add_customer' to add a customer to the database using the add_customer stored procedure and prvided input values."
+                                        "For Insert, Update, and Delete operations, have human to validate the operation before making it. Ask for user approval before executing these queries"
+                                        "Only if schema information is available, proceed with the task. If database schema is not available. Wait for schema_agent to provide schema."
+                                        "Conditions in query should not be case sensitive."
                                     )
-                                ) 
-    return schema_agent  
-
-def create_concierge_agent(client):
-    concierge_agent = AssistantAgent(name="concierge_agent",
-                                model_client=client,
-                                description="Provides final answer to user",
-                                system_message=(
-                                    "Your role is to simplify the results for the user and provide the final answer. Only provide results after shipment_agent has completed its task."
-                                ),
-                            )
-    return concierge_agent
+                        )
+    return customer_agent
 
 def get_user_input(dummy_var): # have to pass a dummy variable to match the function signature
-    return input("Ask a question or type 'bye' to end the conversation:")
+    return input("(type 'bye' to exit):")
 
 def create_user_proxy():
     user_proxy_agent = UserProxyAgent("user_proxy", 
-                        description="Interact with user",
+                        description="Get user input",
                         input_func = get_user_input)
     return user_proxy_agent
