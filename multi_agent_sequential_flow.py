@@ -1,15 +1,12 @@
-from pg_utils import PostgresChain, init_pool
+from pg_utils import PostgresChain
 import warnings
 warnings.filterwarnings("ignore")
-import asyncio
 from agent_tools import create_user_proxy, create_schema_agent, create_shipment_agent, init_client, initiate_planner_agent, create_customer_agent
 from autogen_agentchat.conditions import TextMentionTermination
 from autogen_agentchat.messages import AgentEvent, ChatMessage
 from autogen_agentchat.teams import SelectorGroupChat
-
 from autogen_agentchat.ui import Console
 from typing import Sequence
-import pwinput
 
 
 def selector_func(messages: Sequence[AgentEvent | ChatMessage]) -> str | None:

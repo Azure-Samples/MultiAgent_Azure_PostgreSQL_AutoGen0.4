@@ -3,11 +3,13 @@ import warnings
 warnings.filterwarnings("ignore")
 from agent_tools import create_user_proxy, create_schema_agent, create_shipment_agent, init_client, create_customer_agent
 from autogen_agentchat.conditions import TextMentionTermination
-from autogen_agentchat.teams import RoundRobinGroupChat
+from autogen_agentchat.teams import MagenticOneGroupChat
 from autogen_agentchat.ui import Console
 
 
-async def init_roundrobin_group_chat(init_task, connection_pool):
+
+
+async def init_magentic_group_chat(init_task, connection_pool):
 
     shipment_chain = PostgresChain(connection_pool)
     customer_chain = PostgresChain(connection_pool)
@@ -23,10 +25,12 @@ async def init_roundrobin_group_chat(init_task, connection_pool):
 
 
     termination = TextMentionTermination("bye")
-    team = RoundRobinGroupChat(
+    team = MagenticOneGroupChat(
         [schema_agent, shipment_agent, 
          customer_agent, user_proxy],
-        termination_condition=termination
+         model_client=client,
+        termination_condition=termination,
+        final_answer_prompt="Ensure the relevant agent executes the task. Provide the final answer to the user.",
     )
 
     await Console(team.run_stream(task=init_task))
