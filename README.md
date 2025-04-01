@@ -25,7 +25,7 @@ In this type of team, agents take turn trying to address the ask considering the
 **to test:**
 - python test_with_roundrobin.py
 
-## Multi-agent group chat in using **MagenticOne**[1]
+## Multi-agent group chat using **MagenticOne**[1]
 A team that runs a group chat with participants managed by the MagenticOneOrchestrator. This type of team is optimized for managing complicated multi-step tasks. 
 
 **to test:**
