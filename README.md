@@ -31,5 +31,8 @@ A team that runs a group chat with participants managed by the MagenticOneOrches
 **to test:**
 - python test_with_magentic.py
 
-[1] [Magentic-one: A generalist multi-agent system for solving complex tasks](https://arxiv.org/abs/2411.04468)
 ### Any issues? please report and reach out!
+
+
+#### References
+[1] [Magentic-one: A generalist multi-agent system for solving complex tasks](https://arxiv.org/abs/2411.04468)
