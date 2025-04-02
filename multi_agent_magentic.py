@@ -30,7 +30,7 @@ async def init_magentic_group_chat(init_task, connection_pool):
          customer_agent, user_proxy],
          model_client=client,
         termination_condition=termination,
-        final_answer_prompt="Ensure the relevant agent executes the task. Provide the final answer to the user.",
+        final_answer_prompt="Simplify final answer.",
     )
 
     await Console(team.run_stream(task=init_task))
