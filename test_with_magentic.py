@@ -10,4 +10,4 @@ if __name__ == "__main__":
     connection_pool = init_pool(pw)
     q = input("Ask a question: ")  # Get user input for the query
 
-    final_res = asyncio.run(init_magentic_group_chat(q, connection_pool))
+    final_res = asyncio.run(init_magentic_group_chat(q, connection_pool, True))

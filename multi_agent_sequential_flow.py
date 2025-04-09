@@ -16,7 +16,7 @@ def selector_func(messages: Sequence[AgentEvent | ChatMessage]) -> str | None:
         return "planning_agent"
     return None
 
-async def init_sequential_group_chat(init_task, connection_pool):
+async def init_sequential_group_chat(init_task, connection_pool, close_pool):
     # Initialize connection pool
 
     shipment_chain = PostgresChain(connection_pool)
@@ -42,7 +42,7 @@ async def init_sequential_group_chat(init_task, connection_pool):
     await Console(team.run_stream(task=init_task))
 
     shipment_chain.__close__()
-    customer_chain.__close__(pool=True)
+    customer_chain.__close__(close_pool)
     print("connections closed succssfully")
 
     return True

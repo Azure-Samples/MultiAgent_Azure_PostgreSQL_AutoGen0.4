@@ -7,7 +7,7 @@ from autogen_agentchat.teams import RoundRobinGroupChat
 from autogen_agentchat.ui import Console
 
 
-async def init_roundrobin_group_chat(init_task, connection_pool):
+async def init_roundrobin_group_chat(init_task, connection_pool, close_pool):
 
     shipment_chain = PostgresChain(connection_pool)
     customer_chain = PostgresChain(connection_pool)
@@ -32,7 +32,7 @@ async def init_roundrobin_group_chat(init_task, connection_pool):
     await Console(team.run_stream(task=init_task))
 
     shipment_chain.__close__()
-    customer_chain.__close__(pool=True)
+    customer_chain.__close__(close_pool)
     print("connections closed succssfully")
 
     return True
