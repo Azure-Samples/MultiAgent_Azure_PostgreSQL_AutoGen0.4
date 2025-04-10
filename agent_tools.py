@@ -34,10 +34,13 @@ def create_schema_agent(client, chain):
     schema_agent = AssistantAgent(name="schema_agent",
                                 model_client=client,
                                 description="Retrieves database schema information at start of the conversation.",
-                                tools=[FunctionTool(name="get_schema_info", func = chain.get_schema_info, description="Retrieves the database schema and saves it")],
+                                tools=[FunctionTool(name="get_schema_info", func = chain.get_schema_info, description="Retrieves the database schema and saves it"),
+                                       FunctionTool(name="execute_query", func= chain.execute_query, description= "executes postgres query on database")],
                                 system_message=(
-                                        "Retrieves the database schema and referential integrity information. Only use 'get_schema_info' to retrieve schema information and store it. Do not do anything else. And always provide schema information when you start first."
+                                        "You only have two roles: providing database schema information and creating stored procedures."
+                                        "Retrieve the database schema and referential integrity information. Only use 'get_schema_info' to retrieve schema information and store it. And always provide schema information when you start first."
                                         "If you could not retrieve the schema information, say 'I failed to get the schema information'"
+                                        "You can run CREATE queries on the database to create stored procedure using 'execute_query' function after asking user for approval."
                                     )
                                 ) 
     return schema_agent  
@@ -54,10 +57,11 @@ def initiate_planner_agent(client):
                     Start by calling the schema_agent to retrieve the database schema information. Do not specify any table name.
                     If the schema information is already available in the conversation history, do not call schema_agent.
                     Your team members are:
-                        schema_agent: retrieves database schema information
+                        schema_agent: retrieves database schema information and creates stored procedures.
                         customer_agent: accesses and manages customers information and makes updates to the customers table
                         shipment_agent: accesses and manages shipments and products information and makes updates to the product and shipment related tables
-                    You only plan and delegate tasks - you do not execute them yourself.
+                    You only plan and delegate tasks - you do not execute them yourself. 
+                    You must ensure all subtasks and queries are executed by the appropriate agents.
 
                     When assigning tasks, use this format:
                     1. <agent> : <task>
@@ -74,12 +78,13 @@ def create_shipment_agent(client, shipment_chain):
                                 tools=[FunctionTool(name="execute_query", func= shipment_chain.execute_query, description= "runs postgres query on shipment database"),
                                        FunctionTool(name="exec_send_shipment", func= shipment_chain.exec_send_shipment, description=  "Sends a shipment by executing the 'send_shipment' stored procedure with the provided values.")],
                                 system_message=(
-                            "You can run SELECT queries using 'execute_query' function."
+                            "You can run SELECT or CREATE queries using 'execute_query' function."
                             "Use the 'exec_send_shipment' function to create a shipment using the 'send_shipment' stored procedure and provided input values. Below is an example of how to provide input values:"
                             "[11, 1, 2, date(2023, 10, 1),[{'product_id': 1, 'quantity': 2}, 'product_id': 2, 'quantity': 3}], 'in transit', 'in transit', 1]"
                             "Only if schema information is available, proceed with the task."
                             "Conditions in query should not be case sensitive."
                             "For Insert, Update, and Delete operations, have human to validate the operation before making it."
+                            "Ensure all necessary queries affecting multiple tables are executed in the correct order to maintain referential integrity."
                             )
                             )
     return shipment_agent
@@ -91,7 +96,7 @@ def create_customer_agent(client, customer_chain):
                                 tools=[FunctionTool(name="exec_add_customer", func= customer_chain.exec_add_customer, description=  "Adds a customer to the table customers in the database."),
                                        FunctionTool(name="execute_query", func= customer_chain.execute_query, description= "runs postgres query on the database")],
                                 system_message=(
-                                        "Your role is to manage customer information in the database. You can run SELECT queries using 'execute_query' function."
+                                        "Your role is to manage customer information in the database. You can run SELECT or CREATE queries using 'execute_query' function."
                                         "Use 'exec_add_customer' to add a customer to the database using the add_customer stored procedure and prvided input values."
                                         "For Insert, Update, and Delete operations, have human to validate the operation before making it. Ask for user approval before executing these queries"
                                         "Only if schema information is available, proceed with the task. If database schema is not available. Wait for schema_agent to provide schema."

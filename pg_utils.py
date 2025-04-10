@@ -34,7 +34,7 @@ def init_pool(pw):
         database=os.getenv('POSTGRES_DB')
     )
     return connection_pool
-
+ 
 class PostgresChain():
     def __init__(self, connection_pool):
 
@@ -123,6 +123,8 @@ class PostgresChain():
             query_cursor.execute(query)
             if query.startswith("DELETE"):
                 result = ["Delete operation successful"]
+            elif query.startswith("CREATE"):
+                result = ["Create operation successful"]
             else:
                 result = query_cursor.fetchall()
             self.conn.commit()
