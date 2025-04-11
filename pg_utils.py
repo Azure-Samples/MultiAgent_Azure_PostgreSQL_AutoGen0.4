@@ -38,13 +38,6 @@ def init_pool(pw):
 class PostgresChain():
     def __init__(self, connection_pool):
 
-        self.llm = AzureOpenAIChatCompletionClient(
-        azure_deployment=AZURE_OPENAI_DEPLOYMENT,
-        model="gpt-4",
-        api_version="2024-12-01-preview",
-        azure_endpoint=AZURE_OPENAI_ENDPOINT,
-        api_key=AZURE_OPENAI_KEY
-        )
         self.conn = connection_pool.getconn()
         self.pool = connection_pool
 
@@ -108,12 +101,20 @@ class PostgresChain():
 
     async def nl2query(self, user_q: str):
     # Generate SQL query from natural language question
+    # currently not used in this demo 
         q = Question(question=user_q)
+        llm_model = AzureOpenAIChatCompletionClient(
+        azure_deployment=AZURE_OPENAI_DEPLOYMENT,
+        model="gpt-4",
+        api_version="2024-12-01-preview",
+        azure_endpoint=AZURE_OPENAI_ENDPOINT,
+        api_key=AZURE_OPENAI_KEY
+        )
         prompt = f"Translate the following natural language question to a postgresql query syntax without any prefix: {q.question} ensure the query adheres with following schema: {self.schema}. Make sure conditions are not case sensitive."
         messages = [
         UserMessage(content=prompt, source="user"),
         ]
-        response = await self.llm.create(messages=messages)
+        response = await llm_model.create(messages=messages)
 
         sql_query = response.content
         return sql_query
@@ -123,7 +124,7 @@ class PostgresChain():
             query_cursor.execute(query)
             if query.startswith("DELETE"):
                 result = ["Delete operation successful"]
-            elif query.startswith("CREATE"):
+            elif query.startswith("CREATE") or query.startswith("DROP"):
                 result = ["Create operation successful"]
             else:
                 result = query_cursor.fetchall()
@@ -188,6 +189,7 @@ class PostgresChain():
             self.conn.rollback()
             return f"An error occurred while executing the stored procedure: {e}"
 
+# uncomment if you want to run this file directly
 # if __name__ == "__main__":
 
     # pg = PostgresChain()

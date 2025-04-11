@@ -5,7 +5,6 @@ from autogen_core.models import ChatCompletionClient
 from autogen_agentchat.agents import AssistantAgent
 from autogen_core.tools import FunctionTool
 from autogen_agentchat.agents import UserProxyAgent
-from pg_utils import PostgresChain
 import os
 
 AZURE_OPENAI_KEY = os.getenv('AZURE_OPENAI_KEY')
@@ -80,7 +79,7 @@ def create_shipment_agent(client, shipment_chain):
                                 system_message=(
                             "You can run SELECT or CREATE queries using 'execute_query' function."
                             "Use the 'exec_send_shipment' function to create a shipment using the 'send_shipment' stored procedure and provided input values. Below is an example of how to provide input values:"
-                            "[11, 1, 2, date(2023, 10, 1),[{'product_id': 1, 'quantity': 2}, 'product_id': 2, 'quantity': 3}], 'in transit', 'in transit', 1]"
+                            "[11, 1, 2, date(2023, 10, 1),[{'product_id': 1, 'quantity': 2}, {'product_id': 2, 'quantity': 3}], 'in transit', 'in transit', 1]"
                             "Only if schema information is available, proceed with the task."
                             "Conditions in query should not be case sensitive."
                             "For Insert, Update, and Delete operations, have human to validate the operation before making it."

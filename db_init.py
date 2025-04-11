@@ -44,8 +44,8 @@ if __name__ == "__main__":
         print(f"Error connecting to the database: {error}")
 
 
-        # Replace with path to the SQL file
-        file_path = "SQL_Queries.sql"
+    # Replace with path to the SQL file
+    file_path = "SQL_Queries.sql"
     try:
         # Execute the SQL file
         execute_sql_file(cursor, file_path)
