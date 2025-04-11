@@ -5,6 +5,7 @@ from agent_tools import create_user_proxy, create_schema_agent, create_shipment_
 from autogen_agentchat.conditions import TextMentionTermination
 from autogen_agentchat.teams import MagenticOneGroupChat
 from autogen_agentchat.ui import Console
+from autogen_agentchat.base import TaskResult
 
 
 
@@ -30,14 +31,26 @@ async def init_magentic_group_chat(init_task, connection_pool, close_pool):
          customer_agent, user_proxy],
          model_client=client,
         termination_condition=termination,
-        final_answer_prompt="Simplify final answer.",
+        final_answer_prompt="Do not end the chat until the human says so.",
     )
+    
+    # Initialize a message counter
+    # To count number of messages exchanged
+    message_count = 0
 
-    await Console(team.run_stream(task=init_task))
+    async for message in team.run_stream(task=init_task):
+        if not isinstance(message, TaskResult):
+            print(f"\n-- {message_count+1}:{message.source} -- : {message.content}")
+            message_count += 1
+
+    print(f"Total messages exchanged: {message_count}")
 
     shipment_chain.__close__()
     customer_chain.__close__(close_pool)
-    print("connections closed succssfully")
+    if close_pool:
+        print("Connection pool closed successfully")
+    else:
+        print("Connections released back to the pool. Connection pool is not closed.")
 
     return True
 

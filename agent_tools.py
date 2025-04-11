@@ -60,10 +60,12 @@ def initiate_planner_agent(client):
                         customer_agent: accesses and manages customers information and makes updates to the customers table
                         shipment_agent: accesses and manages shipments and products information and makes updates to the product and shipment related tables
                     You only plan and delegate tasks - you do not execute them yourself. 
-                    You must ensure all subtasks and queries are executed by the appropriate agents.
+                    You must ensure each agent completes all steps of their task before moving on to the next step.
 
                     When assigning tasks, use this format:
                     1. <agent> : <task>
+                    
+                    Do not bundle tasks together. Each agent should only be assigned one task at a time.
 
                     """,
                 )

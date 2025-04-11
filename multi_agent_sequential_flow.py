@@ -7,6 +7,7 @@ from autogen_agentchat.messages import AgentEvent, ChatMessage
 from autogen_agentchat.teams import SelectorGroupChat
 from autogen_agentchat.ui import Console
 from typing import Sequence
+from autogen_agentchat.base import TaskResult
 
 
 def selector_func(messages: Sequence[AgentEvent | ChatMessage]) -> str | None:
@@ -37,13 +38,25 @@ async def init_sequential_group_chat(init_task, connection_pool, close_pool):
         model_client=client,
         selector_func= selector_func,
         termination_condition=termination,
+        allow_repeated_speaker = True
     )
+    # Initialize a message counter
+    # To count number of messages exchanged
+    message_count = 0
 
-    await Console(team.run_stream(task=init_task))
+    async for message in team.run_stream(task=init_task):
+        if not isinstance(message, TaskResult):
+            print(f"\n-- {message_count+1}:{message.source} -- : {message.content}")
+            message_count += 1
+
+    print(f"Total messages exchanged: {message_count}")
 
     shipment_chain.__close__()
     customer_chain.__close__(close_pool)
-    print("connections closed succssfully")
+    if close_pool:
+        print("Connection pool closed successfully")
+    else:
+        print("Connections released back to the pool. Connection pool is not closed.")
 
     return True
 
