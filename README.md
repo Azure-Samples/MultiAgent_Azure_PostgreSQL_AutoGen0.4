@@ -1,4 +1,4 @@
-# **Multi-Agent AI System with AutoGen 0.4 and Azure PostgreSQL**
+# **Multi-Agent PostgreSQL Data Management System with AutoGen**
 
 
 ## Follow below steps to set up:
