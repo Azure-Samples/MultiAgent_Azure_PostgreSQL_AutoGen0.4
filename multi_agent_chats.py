@@ -66,6 +66,7 @@ class GroupChat():
         return None
 
     async def run_group_chat(self, team, init_task):
+        await team.reset() # remove this if you want agents to keep history
         message_count = 0
     
         async for message in team.run_stream(task=init_task):
