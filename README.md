@@ -15,7 +15,6 @@ The application showcases a shipping company where agents manage shipments, cust
 
 ## **Features**
 
-- 🌐 **Gradio UI**: User-friendly interface for natural language interactions.
 - 🤖 **AutoGen Multi-Agent System**: Agents collaborate to handle specific tasks:
   - **SchemaAgent**: Manages database schema retrieval and sharing. It is also allowed to create stored procedures.
   - **ShipmentAgent**: Handles shipment-related queries and updates.
