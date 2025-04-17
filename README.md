@@ -38,26 +38,32 @@ The system is created in a modular way as below, to make it easier for testing v
   - **Azure OpenAI Service** (GPT-4 deployed). 
   - **Azure Database for PostgreSQL** (configured with necessary tables via provided SQL_Queries.sql)
     - You can use the provided helper file called db_util.py to set up your db. Just ensure to update .env file with your own credentials.
+## Test the system
 
-## Multi-agent group chat with a **planner agent**
+You can test out the system in two ways:
+- Use the provided notebooks to test with provided examples or your own.
+Or
+- Run individual python files for testing each group chat mechanism separately:
+  - SelectorGroupChat: test_with_planner.py
+  - Roundrobin: test_with_roundrobin.py
+  - Magentic: test_with_magentic.py
+
+
+## Group chats available to test
+### Multi-agent group chat with a **planner agent**
 Provides a multi-agent human-in-loop group chat for answering user's question from the database.
 This uses a team type called "SelectorGroupChat". A planer agent is defined which is tasked with breaking down the ask to simpler tasks and identifying the right sequence of calling expert agents to execute those. 
 
-**to test:**
-- python test_with_planner.py
 
-## Multi-agent group chat in a **roundrobin fashion**
+### Multi-agent group chat in a **roundrobin fashion**
 Provides a roundrobin multi-agent human-in-loop flow for answering user's question from the database.
 In this type of team, agents take turn trying to address the ask considering their expertise. They all share their output message with all other agents in the chat. This is a less managed type of team work, which can work great for simple tasks but can take multiple rounds to resolve more complex asks.
 
-**to test:**
-- python test_with_roundrobin.py
 
-## Multi-agent group chat using **MagenticOne**[1]
+### Multi-agent group chat using **MagenticOne**[1]
 A team that runs a group chat with participants managed by the MagenticOneOrchestrator. This type of team is optimized for managing more complex tasks.
 
-**to test:**
-- python test_with_magentic.py
+
 
 ### Any issues? please report and reach out!
 
