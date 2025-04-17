@@ -124,8 +124,8 @@ class PostgresChain():
             query_cursor.execute(query)
             if query.startswith("DELETE"):
                 result = ["Delete operation successful"]
-            elif query.startswith("CREATE") or query.startswith("DROP"):
-                result = ["Create operation successful"]
+            elif query.startswith("CREATE") or query.startswith("DROP") or query.startswith("CALL"):
+                result = ["Operation successful"]
             else:
                 result = query_cursor.fetchall()
             self.conn.commit()
