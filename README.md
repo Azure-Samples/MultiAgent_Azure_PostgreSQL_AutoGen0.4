@@ -5,6 +5,29 @@
   <img src="https://github.com/mehrsa/MultiAgent_Azure_PostgreSQL_AutoGen0.4/blob/main/Drawing%203.png" alt="Architecture">
 </div>
 
+This repository demonstrates how to build a **multi-agent AI system** for managing shipment data stored on an Azure PostgreSQL database. Core technologies used are:
+
+- **AutoGen** for coordinating AI agents in collaborative workflows.
+- **Azure OpenAI GPT-4** for intelligent language understanding and generation of SQL queries in PostgreSQL.
+- **Azure Database for PostgreSQL** for data storage and querying.
+
+The application showcases a shipping company where agents manage shipments, customer and product information. The main goal of this repository is to illustrate how easy it is to have agents work together to not only answer questions regarding the data, but also help modify the data based on user requirements and even help create and use new stored procedures. It extends the "Chat With Your Data" to "Chat, Act and Code on Your Data". ** We welcome contributions to help make those agents more reliable and under guardrails. Feel free to contribute to more agents as well! **
+
+## **Features**
+
+- 🌐 **Gradio UI**: User-friendly interface for natural language interactions.
+- 🤖 **AutoGen Multi-Agent System**: Agents collaborate to handle specific tasks:
+  - **SchemaAgent**: Manages database schema retrieval and sharing. It is also allowed to create stored procedures.
+  - **ShipmentAgent**: Handles shipment-related queries and updates.
+  - **CRMAgent**: Manages customer and product-related data. 
+- 🧠 **Azure OpenAI GPT-4**: Generates SQL queries and natural language responses.
+- 🛢️ **Azure PostgreSQL**: Stores shipment, customer, and product data.
+
+The system is created in a modular way as below, to make it easier for testing via plug-and-play and also further expansion:
+- **pg_utils.py** -> Provides a class and tools for enabling agents to connect to the database and perform various tasks
+- **agent_tools.py** -> Has functions for creating required expert agents.
+- **multi_agent_chats.py** -> Provides a class to initiate various types of group chats (aka teams). 
+
 
 ## Follow below steps to set up:
 
