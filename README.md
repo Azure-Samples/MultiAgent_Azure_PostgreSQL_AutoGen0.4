@@ -41,9 +41,8 @@ The system is created in a modular way as below, to make it easier for testing v
 ## Test the system
 
 You can test out the system in two ways:
-- Use the provided notebooks to test with provided examples or your own.
-Or
-- Run individual python files for testing each group chat mechanism separately:
+1. Use the provided notebooks to test with provided examples or your own.
+2. Run individual python files for testing each group chat mechanism separately:
   - **SelectorGroupChat**: test_with_planner.py
   - **Roundrobin**: test_with_roundrobin.py
   - **Magentic**: test_with_magentic.py
@@ -63,7 +62,7 @@ In this type of team, agents take turn trying to address the ask considering the
 #### Multi-agent group chat using **MagenticOne**[1]
 A team that runs a group chat with participants managed by the MagenticOneOrchestrator. This type of team is optimized for managing more complex tasks.
 
-
+##
 
 #### Any issues? please report and reach out!
 
@@ -71,4 +70,4 @@ A team that runs a group chat with participants managed by the MagenticOneOrches
 [1] [Magentic-one: A generalist multi-agent system for solving complex tasks](https://arxiv.org/abs/2411.04468)
 
 ##### Notes
-- New Autogen requires Pydantuc version of >=2.10. At the time of developing this code, Langchain's SQLDatabaseChain caused pydantic to throw an error. Due to this, we decided to write a separate helper class to connect to the database and enable agents to read/write.
+- New Autogen requires Pydantic version of >=2.10. At the time of developing this code, Langchain's SQLDatabaseChain caused pydantic to throw an error. Due to this, we decided to write a separate helper class to connect to the database and enable agents to read/write.
