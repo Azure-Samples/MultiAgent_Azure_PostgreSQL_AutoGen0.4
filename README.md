@@ -38,6 +38,8 @@ A team that runs a group chat with participants managed by the MagenticOneOrches
 
 ### Any issues? please report and reach out!
 
-
 #### References
 [1] [Magentic-one: A generalist multi-agent system for solving complex tasks](https://arxiv.org/abs/2411.04468)
+
+##### Notes
+- New Autogen requires Pydantuc version of >=2.10. At the time of developing this code, Langchain's SQLDatabaseChain caused pydantic to throw an error. Due to this, we decided to write a separate helper class to connect to the database and enable agents to read/write.
