@@ -1,4 +1,9 @@
-# **Multi-Agent PostgreSQL Data Management System with AutoGen**
+# **Multi-Agent PostgreSQL Data Management System with AutoGen 0.4 and Azure PostgreSQL**
+
+
+<div align="center">
+  <img src="https://github.com/mehrsa/MultiAgent_Azure_PostgreSQL_AutoGen0.4/blob/main/Drawing%203.png" alt="Architecture">
+</div>
 
 
 ## Follow below steps to set up:
@@ -12,7 +17,7 @@
     - You can use the provided helper file called db_util.py to set up your db. Just ensure to update .env file with your own credentials.
 
 ## Multi-agent group chat with a **planner agent**
-Provides a sequential multi-agent human-in-loop flow for answering user's question from the database.
+Provides a multi-agent human-in-loop group chat for answering user's question from the database.
 This uses a team type called "SelectorGroupChat". A planer agent is defined which is tasked with breaking down the ask to simpler tasks and identifying the right sequence of calling expert agents to execute those. 
 
 **to test:**
@@ -26,7 +31,7 @@ In this type of team, agents take turn trying to address the ask considering the
 - python test_with_roundrobin.py
 
 ## Multi-agent group chat using **MagenticOne**[1]
-A team that runs a group chat with participants managed by the MagenticOneOrchestrator. This type of team is optimized for managing complicated multi-step tasks. 
+A team that runs a group chat with participants managed by the MagenticOneOrchestrator. This type of team is optimized for managing more complex tasks.
 
 **to test:**
 - python test_with_magentic.py
