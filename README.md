@@ -1,4 +1,4 @@
-# **Multi-Agent PostgreSQL Data Management System with AutoGen 0.4 and Azure PostgreSQL**
+# **Multi-Agent PostgreSQL Data Management System with AutoGen and Azure PostgreSQL**
 
 
 <div align="center">
