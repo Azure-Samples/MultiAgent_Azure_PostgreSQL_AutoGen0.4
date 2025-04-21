@@ -46,6 +46,29 @@ class PostgresChain():
         if pool:
             self.pool.closeall()
 
+    async def get_procedure_info(self) -> str:
+
+        procedure_query = """
+        SELECT
+            routine_schema,
+            routine_name,
+            routine_type,
+            data_type AS return_type,
+            specific_name
+        FROM information_schema.routines
+        WHERE routine_schema = 'public'
+        ORDER BY routine_schema, routine_name;
+        """
+        schema_cur = self.conn.cursor()
+        schema_cur.execute(procedure_query)
+        columns = [desc[0] for desc in schema_cur.description]
+        rows = schema_cur.fetchall()
+        schema_cur.close()
+        # Convert the result to a list of dictionaries
+        proc_info = [dict(zip(columns, row)) for row in rows]
+        return json.dumps(proc_info, indent=2)
+
+
 
     async def get_schema_info(self) -> str:
         print("Getting schema")
