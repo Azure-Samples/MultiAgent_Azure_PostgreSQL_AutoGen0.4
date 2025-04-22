@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from psycopg2 import pool
+import psycopg2
 import pwinput
 import asyncio
 from typing import Dict
@@ -145,16 +146,16 @@ class PostgresChain():
         try:
             query_cursor = self.conn.cursor()
             query_cursor.execute(query)
-            if not(query.startswith("SELECT")):
-                result = ["Operation successful"]
-            else:
+            if query.startswith("SELECT"):
                 result = query_cursor.fetchall()
-            self.conn.commit()
-            query_cursor.close()
-            return result
-        except Exception as e:
+            else:
+                result = ["Operation successful"]
+                self.conn.commit()     
+        except psycopg2.Error as e:
             self.conn.rollback()
-            return [e]
+            result = [e]
+        query_cursor.close()
+        return result
         
     async def exec_add_customer(self, procedure_name: str, input_vals: list) -> str:
 
