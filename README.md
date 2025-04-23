@@ -2,7 +2,7 @@
 
 
 <div align="center">
-  <img src="https://github.com/mehrsa/MultiAgent_Azure_PostgreSQL_AutoGen0.4/blob/main/Drawing%203.png" alt="Architecture">
+  <img src="https://github.com/mehrsa/MultiAgent_Azure_PostgreSQL_AutoGen0.4/blob/main/misc/Drawing%203.png" alt="Architecture">
 </div>
 
 This repository demonstrates how to build a **multi-agent AI system** for managing shipment data stored on an Azure PostgreSQL database. Core technologies used are:
